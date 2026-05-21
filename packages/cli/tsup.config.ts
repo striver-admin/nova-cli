@@ -4,9 +4,10 @@ export default defineConfig({
   entry: ['src/index.ts'],
   format: ['esm'],
   target: 'node18',
-  dts: true,
+  dts: false,
   clean: true,
   splitting: false,
-  bundle: false,
-  sourcemap: true
+  bundle: true,
+  sourcemap: true,
+  outDir: 'dist'
 });
