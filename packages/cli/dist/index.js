@@ -14,20 +14,36 @@ var templates = [
   {
     name: "vue3",
     label: "Vue 3 + TypeScript",
-    repo: "https://github.com/your-org/nova-cli.git",
+    repo: "https://github.com/striver-admin/nova-cli.git",
     branch: "main",
     dir: "packages/template-vue3",
     description: "Vue 3 project with Vite, Pinia, Vue Router, ESLint, Prettier, Husky",
-    features: ["vite", "vue-router", "pinia", "eslint", "prettier", "husky", "lint-staged"]
+    features: [
+      "vite",
+      "vue-router",
+      "pinia",
+      "eslint",
+      "prettier",
+      "husky",
+      "lint-staged"
+    ]
   },
   {
     name: "react18",
     label: "React 18 + TypeScript",
-    repo: "https://github.com/your-org/nova-cli.git",
+    repo: "https://github.com/striver-admin/nova-cli.git",
     branch: "main",
     dir: "packages/template-react18",
     description: "React 18 project with Vite, React Router, Zustand, ESLint, Prettier, Husky",
-    features: ["vite", "react-router", "zustand", "eslint", "prettier", "husky", "lint-staged"]
+    features: [
+      "vite",
+      "react-router",
+      "zustand",
+      "eslint",
+      "prettier",
+      "husky",
+      "lint-staged"
+    ]
   }
 ];
 function findTemplate(name) {
@@ -245,14 +261,287 @@ var infoCommand = new Command3("info").argument("<template>", "Template name").d
   console.log("");
 });
 
+// src/commands/init.ts
+import { Command as Command4 } from "commander";
+import { resolve as resolve2 } from "path";
+import { existsSync as existsSync2 } from "fs";
+
+// src/prompts/init.ts
+import { select as select2, checkbox } from "@inquirer/prompts";
+async function initPrompts(options) {
+  if (options.type && options.tools) {
+    return {
+      projectType: options.type,
+      tools: Array.isArray(options.tools) ? options.tools : [options.tools],
+      packageManager: options.packageManager || "pnpm"
+    };
+  }
+  const projectType = await select2({
+    message: "Select project type:",
+    choices: [
+      { name: "Vue 3 + TypeScript", value: "vue3" },
+      { name: "React 18 + TypeScript", value: "react" },
+      { name: "TypeScript (plain)", value: "ts" },
+      { name: "JavaScript (plain)", value: "js" }
+    ]
+  });
+  const tools = await checkbox({
+    message: "Select tools to add:",
+    choices: [
+      { name: "ESLint", value: "eslint", checked: true },
+      { name: "Prettier", value: "prettier", checked: true },
+      { name: "Husky + lint-staged", value: "husky", checked: true }
+    ],
+    validate: (input) => input.length > 0 || "Select at least one tool"
+  });
+  const packageManager = await select2({
+    message: "Select a package manager:",
+    choices: [
+      { name: "pnpm", value: "pnpm" },
+      { name: "npm", value: "npm" },
+      { name: "yarn", value: "yarn" }
+    ],
+    default: "pnpm"
+  });
+  return { projectType, tools, packageManager };
+}
+
+// src/utils/tooling.ts
+import fs3 from "fs-extra";
+import { join as join3 } from "path";
+import { execa as execa3 } from "execa";
+async function addEslintConfig(dir, projectType) {
+  const configPath = join3(dir, ".eslintrc.cjs");
+  const configs = {
+    "vue3": `module.exports = {
+  root: true,
+  env: { browser: true, es2020: true },
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:vue/vue3-recommended',
+    'prettier'
+  ],
+  parserOptions: {
+    parser: '@typescript-eslint/parser'
+  },
+  rules: {
+    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off'
+  }
+};
+`,
+    "react": `module.exports = {
+  root: true,
+  env: { browser: true, es2020: true },
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:react/recommended',
+    'plugin:react-hooks/recommended',
+    'prettier'
+  ],
+  parserOptions: {
+    ecmaFeatures: { jsx: true },
+    parser: '@typescript-eslint/parser'
+  },
+  settings: {
+    react: { version: 'detect' }
+  },
+  rules: {
+    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'react/react-in-jsx-scope': 'off'
+  }
+};
+`,
+    "ts": `module.exports = {
+  root: true,
+  env: { browser: true, es2020: true },
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'prettier'
+  ],
+  parser: '@typescript-eslint/parser',
+  rules: {
+    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off'
+  }
+};
+`,
+    "js": `module.exports = {
+  root: true,
+  env: { browser: true, es2020: true },
+  extends: [
+    'eslint:recommended',
+    'prettier'
+  ],
+  rules: {
+    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off'
+  }
+};
+`
+  };
+  await fs3.writeFile(configPath, configs[projectType] || configs["ts"]);
+}
+async function addPrettierConfig(dir) {
+  const configPath = join3(dir, ".prettierrc");
+  const config = JSON.stringify({
+    semi: false,
+    singleQuote: true,
+    printWidth: 100,
+    trailingComma: "none",
+    arrowParens: "avoid"
+  }, null, 2) + "\n";
+  await fs3.writeFile(configPath, config);
+}
+async function addPrettierIgnore(dir) {
+  const ignorePath = join3(dir, ".prettierignore");
+  const content = `node_modules
+dist
+coverage
+*.min.js
+`;
+  await fs3.writeFile(ignorePath, content);
+}
+async function setupHusky(dir) {
+  const huskyDir = join3(dir, ".husky");
+  await fs3.ensureDir(huskyDir);
+  const preCommitPath = join3(huskyDir, "pre-commit");
+  await fs3.writeFile(preCommitPath, "#!/bin/sh\nnpx lint-staged\n");
+  await fs3.chmod(preCommitPath, 493);
+}
+async function updatePackageJsonForTooling(dir, options) {
+  const packagePath = join3(dir, "package.json");
+  const pkg = await fs3.readJson(packagePath);
+  pkg.scripts = pkg.scripts || {};
+  if (options.eslint) {
+    pkg.scripts.lint = "eslint . --fix";
+  }
+  if (options.prettier) {
+    pkg.scripts.format = "prettier --write .";
+  }
+  if (options.husky) {
+    pkg.scripts.prepare = "husky";
+  }
+  pkg.devDependencies = pkg.devDependencies || {};
+  if (options.eslint) {
+    pkg.devDependencies.eslint = "^8.57.0";
+    pkg.devDependencies["@typescript-eslint/eslint-plugin"] = "^7.0.0";
+    pkg.devDependencies["@typescript-eslint/parser"] = "^7.0.0";
+    if (options.prettier) {
+      pkg.devDependencies["eslint-config-prettier"] = "^9.1.0";
+    }
+    if (options.projectType === "vue3") {
+      pkg.devDependencies["eslint-plugin-vue"] = "^9.24.0";
+    } else if (options.projectType === "react") {
+      pkg.devDependencies["eslint-plugin-react"] = "^7.34.0";
+      pkg.devDependencies["eslint-plugin-react-hooks"] = "^4.6.0";
+    }
+  }
+  if (options.prettier) {
+    pkg.devDependencies.prettier = "^3.2.0";
+  }
+  if (options.husky) {
+    pkg.devDependencies.husky = "^9.0.0";
+    pkg.devDependencies["lint-staged"] = "^15.2.0";
+    const extMap = {
+      "vue3": "*.{js,ts,vue}",
+      "react": "*.{js,ts,tsx,jsx}",
+      "ts": "*.{js,ts}",
+      "js": "*.js"
+    };
+    const glob = extMap[options.projectType] || "*.{js,ts}";
+    pkg["lint-staged"] = {
+      [glob]: options.eslint && options.prettier ? ["eslint --fix", "prettier --write"] : options.eslint ? ["eslint --fix"] : ["prettier --write"]
+    };
+  }
+  await fs3.writeJson(packagePath, pkg, { spaces: 2 });
+}
+async function runHuskyPrepare(dir, packageManager) {
+  const [cmd, ...args] = getInstallCommand2(packageManager);
+  await execa3(cmd, [...args, "run", "prepare"], { cwd: dir, stdio: "inherit" });
+}
+function getInstallCommand2(manager) {
+  switch (manager) {
+    case "pnpm":
+      return ["pnpm", "install"];
+    case "yarn":
+      return ["yarn"];
+    default:
+      return ["npm", "install"];
+  }
+}
+
+// src/commands/init.ts
+var initCommand = new Command4("init").description("Add ESLint, Prettier, Husky to an existing project").option("-t, --type <type>", "Project type (vue3, react, ts, js)").option("--tools <tools...>", "Tools to add (eslint, prettier, husky)").option("-pm, --package-manager <name>", "Package manager (npm/yarn/pnpm)", "pnpm").option("--skip-install", "Skip dependency installation").action(async (options) => {
+  const targetDir = process.cwd();
+  if (!existsSync2(resolve2(targetDir, "package.json"))) {
+    logger.error("No package.json found. Run this command inside an existing project.");
+    process.exit(1);
+  }
+  try {
+    const config = await initPrompts(options);
+    const hasEslint = config.tools.includes("eslint");
+    const hasPrettier = config.tools.includes("prettier");
+    const hasHusky = config.tools.includes("husky");
+    if (hasEslint) {
+      await spinner.start("Adding ESLint config...", async () => {
+        await addEslintConfig(targetDir, config.projectType);
+      });
+    }
+    if (hasPrettier) {
+      await spinner.start("Adding Prettier config...", async () => {
+        await addPrettierConfig(targetDir);
+        await addPrettierIgnore(targetDir);
+      });
+    }
+    if (hasHusky) {
+      await spinner.start("Setting up Husky...", async () => {
+        await setupHusky(targetDir);
+      });
+    }
+    await spinner.start("Updating package.json...", async () => {
+      await updatePackageJsonForTooling(targetDir, {
+        eslint: hasEslint,
+        prettier: hasPrettier,
+        husky: hasHusky,
+        projectType: config.projectType
+      });
+    });
+    if (!options.skipInstall) {
+      await spinner.start("Installing dependencies...", async () => {
+        await installDeps(targetDir, config.packageManager);
+      });
+    }
+    if (hasHusky && !options.skipInstall) {
+      await spinner.start("Initializing Husky hooks...", async () => {
+        await runHuskyPrepare(targetDir, config.packageManager);
+      });
+    }
+    logger.success("Tooling setup complete!");
+    const scripts = [];
+    if (hasEslint) scripts.push("lint");
+    if (hasPrettier) scripts.push("format");
+    if (scripts.length > 0) {
+      logger.info(`Available scripts: ${scripts.join(", ")}`);
+    }
+  } catch (error) {
+    logger.error(error.message || "Failed to setup tooling.");
+    process.exit(1);
+  }
+});
+
 // package.json
 var package_default = {
-  name: "nova-cli",
+  name: "striver-dev-cli",
   version: "0.0.1",
   description: "Project scaffolding CLI for Vue and React",
   type: "module",
   bin: {
-    nova: "./bin/nova-cli.js"
+    nova: "bin/nova-cli.js"
   },
   main: "./dist/index.js",
   scripts: {
@@ -261,12 +550,12 @@ var package_default = {
     typecheck: "tsc --noEmit"
   },
   dependencies: {
-    commander: "^12.0.0",
     "@inquirer/prompts": "^5.0.0",
     chalk: "^5.3.0",
-    ora: "^8.0.0",
+    commander: "^12.0.0",
     execa: "^9.0.0",
-    "fs-extra": "^11.2.0"
+    "fs-extra": "^11.2.0",
+    ora: "^8.0.0"
   },
   devDependencies: {
     "@types/fs-extra": "^11.0.4",
@@ -276,7 +565,14 @@ var package_default = {
   },
   engines: {
     node: ">=18.0.0"
-  }
+  },
+  publishConfig: {
+    access: "public"
+  },
+  files: [
+    "dist",
+    "bin"
+  ]
 };
 
 // src/index.ts
@@ -284,5 +580,6 @@ program.name("nova-cli").description("Project scaffolding CLI for Vue and React"
 program.addCommand(createCommand);
 program.addCommand(listCommand);
 program.addCommand(infoCommand);
+program.addCommand(initCommand);
 program.parse();
 //# sourceMappingURL=index.js.map

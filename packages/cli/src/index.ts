@@ -2,6 +2,7 @@ import { program } from 'commander';
 import { createCommand } from './commands/create.js';
 import { listCommand } from './commands/list.js';
 import { infoCommand } from './commands/info.js';
+import { initCommand } from './commands/init.js';
 import pkgJson from '../package.json' with { type: 'json' };
 
 program
@@ -12,5 +13,6 @@ program
 program.addCommand(createCommand);
 program.addCommand(listCommand);
 program.addCommand(infoCommand);
+program.addCommand(initCommand);
 
 program.parse();
