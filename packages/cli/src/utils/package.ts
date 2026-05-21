@@ -1,4 +1,4 @@
-import { readJson, writeJson } from 'fs-extra';
+import fs from 'fs-extra';
 import { join } from 'path';
 
 interface PackageJsonUpdate {
@@ -9,7 +9,7 @@ interface PackageJsonUpdate {
 
 export async function updatePackageJson(dir: string, updates: PackageJsonUpdate) {
   const packagePath = join(dir, 'package.json');
-  const pkg = await readJson(packagePath);
+  const pkg = await fs.readJson(packagePath);
 
   Object.assign(pkg, updates);
 
@@ -17,5 +17,5 @@ export async function updatePackageJson(dir: string, updates: PackageJsonUpdate)
   delete pkg.devDependencies?.tsup;
   delete pkg.scripts?.build;
 
-  await writeJson(packagePath, pkg, { spaces: 2 });
+  await fs.writeJson(packagePath, pkg, { spaces: 2 });
 }

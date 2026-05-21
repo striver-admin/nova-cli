@@ -1,7 +1,7 @@
 import { execa } from 'execa';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { copy, remove } from 'fs-extra';
+import fs from 'fs-extra';
 import { templates } from '../templates/registry.js';
 
 export async function cloneTemplate(templateName: string, targetDir: string) {
@@ -22,9 +22,9 @@ export async function cloneTemplate(templateName: string, targetDir: string) {
     ]);
 
     const sourceDir = join(tmpDir, template.dir);
-    await copy(sourceDir, targetDir);
+    await fs.copy(sourceDir, targetDir);
   } finally {
-    await remove(tmpDir);
+    await fs.remove(tmpDir);
   }
 }
 
