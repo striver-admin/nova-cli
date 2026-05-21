@@ -537,7 +537,7 @@ var initCommand = new Command4("init").description("Add ESLint, Prettier, Husky 
 // package.json
 var package_default = {
   name: "striver-dev-cli",
-  version: "0.0.1",
+  version: "0.0.2",
   description: "Project scaffolding CLI for Vue and React",
   type: "module",
   bin: {
