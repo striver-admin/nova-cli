@@ -1,0 +1,14 @@
+{
+  "name": "nova-cli-monorepo",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Project scaffolding CLI for Vue and React",
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r --parallel dev",
+    "lint": "pnpm -r lint"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
