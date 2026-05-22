@@ -1,6 +1,6 @@
 {
   "name": "striver-dev-cli",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Project scaffolding CLI for Vue and React",
   "type": "module",
   "bin": {
