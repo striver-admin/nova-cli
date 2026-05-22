@@ -8,7 +8,8 @@ import {
   addPrettierIgnore,
   setupHusky,
   updatePackageJsonForTooling,
-  runHuskyPrepare
+  runHuskyPrepare,
+  installFrameworkPackages
 } from '../utils/tooling.js';
 import { installDeps } from '../utils/fs.js';
 import { logger } from '../utils/logger.js';
@@ -18,6 +19,7 @@ export const initCommand = new Command('init')
   .description('Add ESLint, Prettier, Husky to an existing project')
   .option('-t, --type <type>', 'Project type (vue3, react, ts, js)')
   .option('--tools <tools...>', 'Tools to add (eslint, prettier, husky)')
+  .option('--framework-pkgs <pkgs...>', 'Framework packages to install')
   .option('-pm, --package-manager <name>', 'Package manager (npm/yarn/pnpm)', 'pnpm')
   .option('--skip-install', 'Skip dependency installation')
   .action(async (options: any) => {
@@ -62,6 +64,12 @@ export const initCommand = new Command('init')
           projectType: config.projectType
         });
       });
+
+      if (config.frameworkPackages.length > 0) {
+        await spinner.start('Adding framework packages...', async () => {
+          await installFrameworkPackages(targetDir, config.projectType, config.frameworkPackages);
+        });
+      }
 
       if (!options.skipInstall) {
         await spinner.start('Installing dependencies...', async () => {

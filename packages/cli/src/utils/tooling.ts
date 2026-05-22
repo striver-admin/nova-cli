@@ -259,6 +259,55 @@ export async function updatePackageJsonForTooling(
   await fs.writeJson(packagePath, pkg, { spaces: 2 });
 }
 
+const vuePackageVersions: Record<string, string> = {
+  vue: '^3.4.0',
+  'vue-router': '^4.3.0',
+  'element-plus': '^2.7.0',
+  pinia: '^2.1.0',
+  '@vitejs/plugin-vue': '^5.0.0'
+};
+
+const reactPackageVersions: Record<string, string> = {
+  react: '^18.3.0',
+  'react-dom': '^18.3.0',
+  'react-router-dom': '^6.22.0',
+  antd: '^5.15.0',
+  '@tanstack/react-query': '^5.28.0',
+  zustand: '^4.5.0'
+};
+
+export async function installFrameworkPackages(
+  dir: string,
+  projectType: string,
+  selectedPackages: string[]
+) {
+  if (selectedPackages.length === 0) return;
+
+  const packagePath = join(dir, 'package.json');
+  const pkg = await fs.readJson(packagePath);
+
+  pkg.dependencies = pkg.dependencies || {};
+  pkg.devDependencies = pkg.devDependencies || {};
+
+  const versions = projectType === 'vue3' ? vuePackageVersions : reactPackageVersions;
+
+  for (const pkgName of selectedPackages) {
+    if (pkgName === 'react') {
+      pkg.dependencies['react'] = versions['react'];
+      pkg.dependencies['react-dom'] = versions['react-dom'];
+    } else if (versions[pkgName]) {
+      const isDevDep = pkgName.startsWith('@vitejs/');
+      if (isDevDep) {
+        pkg.devDependencies[pkgName] = versions[pkgName];
+      } else {
+        pkg.dependencies[pkgName] = versions[pkgName];
+      }
+    }
+  }
+
+  await fs.writeJson(packagePath, pkg, { spaces: 2 });
+}
+
 export async function runHuskyPrepare(dir: string, packageManager: string) {
   const [cmd, ...args] = getInstallCommand(packageManager);
   await execa(cmd, [...args, "run", "prepare"], { cwd: dir, stdio: "inherit" });

@@ -268,11 +268,26 @@ import { existsSync as existsSync2 } from "fs";
 
 // src/prompts/init.ts
 import { select as select2, checkbox } from "@inquirer/prompts";
+var vuePackageChoices = [
+  { name: "Vue 3 (core)", value: "vue", checked: true },
+  { name: "Vue Router", value: "vue-router", checked: true },
+  { name: "Element Plus (UI)", value: "element-plus", checked: true },
+  { name: "Pinia (state management)", value: "pinia", checked: true },
+  { name: "@vitejs/plugin-vue", value: "@vitejs/plugin-vue", checked: true }
+];
+var reactPackageChoices = [
+  { name: "React + React DOM", value: "react", checked: true },
+  { name: "React Router DOM", value: "react-router-dom", checked: true },
+  { name: "Ant Design (UI)", value: "antd", checked: true },
+  { name: "TanStack React Query", value: "@tanstack/react-query", checked: true },
+  { name: "Zustand (state management)", value: "zustand", checked: true }
+];
 async function initPrompts(options) {
   if (options.type && options.tools) {
     return {
       projectType: options.type,
       tools: Array.isArray(options.tools) ? options.tools : [options.tools],
+      frameworkPackages: options.frameworkPkgs ? Array.isArray(options.frameworkPkgs) ? options.frameworkPkgs : [options.frameworkPkgs] : [],
       packageManager: options.packageManager || "pnpm"
     };
   }
@@ -294,6 +309,18 @@ async function initPrompts(options) {
     ],
     validate: (input) => input.length > 0 || "Select at least one tool"
   });
+  let frameworkPackages = [];
+  if (projectType === "vue3") {
+    frameworkPackages = await checkbox({
+      message: "Select Vue packages to install:",
+      choices: vuePackageChoices
+    });
+  } else if (projectType === "react") {
+    frameworkPackages = await checkbox({
+      message: "Select React packages to install:",
+      choices: reactPackageChoices
+    });
+  }
   const packageManager = await select2({
     message: "Select a package manager:",
     choices: [
@@ -303,7 +330,7 @@ async function initPrompts(options) {
     ],
     default: "pnpm"
   });
-  return { projectType, tools, packageManager };
+  return { projectType, tools, frameworkPackages, packageManager };
 }
 
 // src/utils/tooling.ts
@@ -531,6 +558,43 @@ async function updatePackageJsonForTooling(dir, options) {
   }
   await fs3.writeJson(packagePath, pkg, { spaces: 2 });
 }
+var vuePackageVersions = {
+  vue: "^3.4.0",
+  "vue-router": "^4.3.0",
+  "element-plus": "^2.7.0",
+  pinia: "^2.1.0",
+  "@vitejs/plugin-vue": "^5.0.0"
+};
+var reactPackageVersions = {
+  react: "^18.3.0",
+  "react-dom": "^18.3.0",
+  "react-router-dom": "^6.22.0",
+  antd: "^5.15.0",
+  "@tanstack/react-query": "^5.28.0",
+  zustand: "^4.5.0"
+};
+async function installFrameworkPackages(dir, projectType, selectedPackages) {
+  if (selectedPackages.length === 0) return;
+  const packagePath = join3(dir, "package.json");
+  const pkg = await fs3.readJson(packagePath);
+  pkg.dependencies = pkg.dependencies || {};
+  pkg.devDependencies = pkg.devDependencies || {};
+  const versions = projectType === "vue3" ? vuePackageVersions : reactPackageVersions;
+  for (const pkgName of selectedPackages) {
+    if (pkgName === "react") {
+      pkg.dependencies["react"] = versions["react"];
+      pkg.dependencies["react-dom"] = versions["react-dom"];
+    } else if (versions[pkgName]) {
+      const isDevDep = pkgName.startsWith("@vitejs/");
+      if (isDevDep) {
+        pkg.devDependencies[pkgName] = versions[pkgName];
+      } else {
+        pkg.dependencies[pkgName] = versions[pkgName];
+      }
+    }
+  }
+  await fs3.writeJson(packagePath, pkg, { spaces: 2 });
+}
 async function runHuskyPrepare(dir, packageManager) {
   const [cmd, ...args] = getInstallCommand2(packageManager);
   await execa3(cmd, [...args, "run", "prepare"], { cwd: dir, stdio: "inherit" });
@@ -547,7 +611,7 @@ function getInstallCommand2(manager) {
 }
 
 // src/commands/init.ts
-var initCommand = new Command4("init").description("Add ESLint, Prettier, Husky to an existing project").option("-t, --type <type>", "Project type (vue3, react, ts, js)").option("--tools <tools...>", "Tools to add (eslint, prettier, husky)").option("-pm, --package-manager <name>", "Package manager (npm/yarn/pnpm)", "pnpm").option("--skip-install", "Skip dependency installation").action(async (options) => {
+var initCommand = new Command4("init").description("Add ESLint, Prettier, Husky to an existing project").option("-t, --type <type>", "Project type (vue3, react, ts, js)").option("--tools <tools...>", "Tools to add (eslint, prettier, husky)").option("--framework-pkgs <pkgs...>", "Framework packages to install").option("-pm, --package-manager <name>", "Package manager (npm/yarn/pnpm)", "pnpm").option("--skip-install", "Skip dependency installation").action(async (options) => {
   const targetDir = process.cwd();
   if (!existsSync2(resolve2(targetDir, "package.json"))) {
     logger.error("No package.json found. Run this command inside an existing project.");
@@ -582,6 +646,11 @@ var initCommand = new Command4("init").description("Add ESLint, Prettier, Husky 
         projectType: config.projectType
       });
     });
+    if (config.frameworkPackages.length > 0) {
+      await spinner.start("Adding framework packages...", async () => {
+        await installFrameworkPackages(targetDir, config.projectType, config.frameworkPackages);
+      });
+    }
     if (!options.skipInstall) {
       await spinner.start("Installing dependencies...", async () => {
         await installDeps(targetDir, config.packageManager);
@@ -608,7 +677,7 @@ var initCommand = new Command4("init").description("Add ESLint, Prettier, Husky 
 // package.json
 var package_default = {
   name: "striver-dev-cli",
-  version: "0.0.5",
+  version: "0.0.6",
   description: "Project scaffolding CLI for Vue and React",
   type: "module",
   bin: {
