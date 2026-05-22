@@ -328,7 +328,7 @@ async function addEslintConfig(dir, projectType) {
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    no-var': 'error', // \u8981\u6C42\u4F7F\u7528 let \u6216 const \u800C\u4E0D\u662F var
+    'no-var': 'error', // \u8981\u6C42\u4F7F\u7528 let \u6216 const \u800C\u4E0D\u662F var
     'no-multiple-empty-lines': ['error', { max: 1 }], // \u4E0D\u5141\u8BB8\u591A\u4E2A\u7A7A\u884C
     'prefer-const': 'off', // \u4F7F\u7528 let \u5173\u952E\u5B57\u58F0\u660E\u4F46\u5728\u521D\u59CB\u5206\u914D\u540E\u4ECE\u672A\u91CD\u65B0\u5206\u914D\u7684\u53D8\u91CF\uFF0C\u8981\u6C42\u4F7F\u7528 const
     'no-use-before-define': 'off', // \u7981\u6B62\u5728 \u51FD\u6570/\u7C7B/\u53D8\u91CF \u5B9A\u4E49\u4E4B\u524D\u4F7F\u7528\u5B83\u4EEC
@@ -608,7 +608,7 @@ var initCommand = new Command4("init").description("Add ESLint, Prettier, Husky 
 // package.json
 var package_default = {
   name: "striver-dev-cli",
-  version: "0.0.4",
+  version: "0.0.5",
   description: "Project scaffolding CLI for Vue and React",
   type: "module",
   bin: {
