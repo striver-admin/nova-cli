@@ -313,7 +313,7 @@ import { execa as execa3 } from "execa";
 async function addEslintConfig(dir, projectType) {
   const configPath = join3(dir, ".eslintrc.cjs");
   const configs = {
-    "vue3": `module.exports = {
+    vue3: `module.exports = {
   root: true,
   env: { browser: true, es2020: true },
   extends: [
@@ -327,11 +327,40 @@ async function addEslintConfig(dir, projectType) {
   },
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off'
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    no-var': 'error', // \u8981\u6C42\u4F7F\u7528 let \u6216 const \u800C\u4E0D\u662F var
+    'no-multiple-empty-lines': ['error', { max: 1 }], // \u4E0D\u5141\u8BB8\u591A\u4E2A\u7A7A\u884C
+    'prefer-const': 'off', // \u4F7F\u7528 let \u5173\u952E\u5B57\u58F0\u660E\u4F46\u5728\u521D\u59CB\u5206\u914D\u540E\u4ECE\u672A\u91CD\u65B0\u5206\u914D\u7684\u53D8\u91CF\uFF0C\u8981\u6C42\u4F7F\u7528 const
+    'no-use-before-define': 'off', // \u7981\u6B62\u5728 \u51FD\u6570/\u7C7B/\u53D8\u91CF \u5B9A\u4E49\u4E4B\u524D\u4F7F\u7528\u5B83\u4EEC
+
+    // typeScript (https://typescript-eslint.io/rules)
+    '@typescript-eslint/no-unused-vars': 'error', // \u7981\u6B62\u5B9A\u4E49\u672A\u4F7F\u7528\u7684\u53D8\u91CF
+    '@typescript-eslint/no-empty-function': 'error', // \u7981\u6B62\u7A7A\u51FD\u6570
+    '@typescript-eslint/prefer-ts-expect-error': 'error', // \u7981\u6B62\u4F7F\u7528 @ts-ignore
+    '@typescript-eslint/ban-ts-comment': 'error', // \u7981\u6B62 @ts-<directive> \u4F7F\u7528\u6CE8\u91CA\u6216\u8981\u6C42\u5728\u6307\u4EE4\u540E\u8FDB\u884C\u63CF\u8FF0
+    '@typescript-eslint/no-inferrable-types': 'off', // \u53EF\u4EE5\u8F7B\u677E\u63A8\u65AD\u7684\u663E\u5F0F\u7C7B\u578B\u53EF\u80FD\u4F1A\u589E\u52A0\u4E0D\u5FC5\u8981\u7684\u5197\u957F
+    '@typescript-eslint/no-namespace': 'off', // \u7981\u6B62\u4F7F\u7528\u81EA\u5B9A\u4E49 TypeScript \u6A21\u5757\u548C\u547D\u540D\u7A7A\u95F4
+    '@typescript-eslint/no-explicit-any': 'off', // \u7981\u6B62\u4F7F\u7528 any \u7C7B\u578B
+    '@typescript-eslint/ban-types': 'off', // \u7981\u6B62\u4F7F\u7528\u7279\u5B9A\u7C7B\u578B
+    '@typescript-eslint/no-var-requires': 'off', // \u5141\u8BB8\u4F7F\u7528 require() \u51FD\u6570\u5BFC\u5165\u6A21\u5757
+    '@typescript-eslint/no-non-null-assertion': 'off', // \u4E0D\u5141\u8BB8\u4F7F\u7528\u540E\u7F00\u8FD0\u7B97\u7B26\u7684\u975E\u7A7A\u65AD\u8A00(!)
+
+    // vue (https://eslint.vuejs.org/rules)
+    'vue/script-setup-uses-vars': 'error', // \u9632\u6B62<script setup>\u4F7F\u7528\u7684\u53D8\u91CF<template>\u88AB\u6807\u8BB0\u4E3A\u672A\u4F7F\u7528\uFF0C\u6B64\u89C4\u5219\u4EC5\u5728\u542F\u7528\u8BE5 no-unused-vars \u89C4\u5219\u65F6\u6709\u6548
+    'vue/v-slot-style': 'error', // \u5F3A\u5236\u6267\u884C v-slot \u6307\u4EE4\u6837\u5F0F
+    'vue/no-mutating-props': 'error', // \u4E0D\u5141\u8BB8\u6539\u53D8\u7EC4\u4EF6 prop
+    'vue/custom-event-name-casing': 'error', // \u4E3A\u81EA\u5B9A\u4E49\u4E8B\u4EF6\u540D\u79F0\u5F3A\u5236\u4F7F\u7528\u7279\u5B9A\u5927\u5C0F\u5199
+    'vue/html-closing-bracket-newline': 'error', // \u5728\u6807\u7B7E\u7684\u53F3\u62EC\u53F7\u4E4B\u524D\u8981\u6C42\u6216\u7981\u6B62\u6362\u884C
+    'vue/attribute-hyphenation': 'error', // \u5BF9\u6A21\u677F\u4E2D\u7684\u81EA\u5B9A\u4E49\u7EC4\u4EF6\u5F3A\u5236\u6267\u884C\u5C5E\u6027\u547D\u540D\u6837\u5F0F\uFF1Amy-prop="prop"
+    'vue/attributes-order': 'off', // vue api\u4F7F\u7528\u987A\u5E8F\uFF0C\u5F3A\u5236\u6267\u884C\u5C5E\u6027\u987A\u5E8F
+    'vue/no-v-html': 'off', // \u7981\u6B62\u4F7F\u7528 v-html
+    'vue/require-default-prop': 'off', // \u6B64\u89C4\u5219\u8981\u6C42\u4E3A\u6BCF\u4E2A prop \u4E3A\u5FC5\u586B\u65F6\uFF0C\u5FC5\u987B\u63D0\u4F9B\u9ED8\u8BA4\u503C
+    'vue/multi-word-component-names': 'off', // \u8981\u6C42\u7EC4\u4EF6\u540D\u79F0\u59CB\u7EC8\u4E3A \u201C-\u201D \u94FE\u63A5\u7684\u5355\u8BCD
+    'vue/no-setup-props-destructure': 'off' // \u7981\u6B62\u89E3\u6784 props \u4F20\u9012\u7ED9 setup
   }
 };
 `,
-    "react": `module.exports = {
+    react: `module.exports = {
   root: true,
   env: { browser: true, es2020: true },
   extends: [
@@ -351,11 +380,28 @@ async function addEslintConfig(dir, projectType) {
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'no-var': 'error', // \u8981\u6C42\u4F7F\u7528 let \u6216 const \u800C\u4E0D\u662F var
+    'no-multiple-empty-lines': ['error', { max: 1 }], // \u4E0D\u5141\u8BB8\u591A\u4E2A\u7A7A\u884C
+    'prefer-const': 'off', // \u4F7F\u7528 let \u5173\u952E\u5B57\u58F0\u660E\u4F46\u5728\u521D\u59CB\u5206\u914D\u540E\u4ECE\u672A\u91CD\u65B0\u5206\u914D\u7684\u53D8\u91CF\uFF0C\u8981\u6C42\u4F7F\u7528 const
+    'no-use-before-define': 'off', // \u7981\u6B62\u5728 \u51FD\u6570/\u7C7B/\u53D8\u91CF \u5B9A\u4E49\u4E4B\u524D\u4F7F\u7528\u5B83\u4EEC
+
+    // typeScript (https://typescript-eslint.io/rules)
+    '@typescript-eslint/no-unused-vars': 'error', // \u7981\u6B62\u5B9A\u4E49\u672A\u4F7F\u7528\u7684\u53D8\u91CF
+    '@typescript-eslint/no-empty-function': 'error', // \u7981\u6B62\u7A7A\u51FD\u6570
+    '@typescript-eslint/prefer-ts-expect-error': 'error', // \u7981\u6B62\u4F7F\u7528 @ts-ignore
+    '@typescript-eslint/ban-ts-comment': 'error', // \u7981\u6B62 @ts-<directive> \u4F7F\u7528\u6CE8\u91CA\u6216\u8981\u6C42\u5728\u6307\u4EE4\u540E\u8FDB\u884C\u63CF\u8FF0
+    '@typescript-eslint/no-inferrable-types': 'off', // \u53EF\u4EE5\u8F7B\u677E\u63A8\u65AD\u7684\u663E\u5F0F\u7C7B\u578B\u53EF\u80FD\u4F1A\u589E\u52A0\u4E0D\u5FC5\u8981\u7684\u5197\u957F
+    '@typescript-eslint/no-namespace': 'off', // \u7981\u6B62\u4F7F\u7528\u81EA\u5B9A\u4E49 TypeScript \u6A21\u5757\u548C\u547D\u540D\u7A7A\u95F4
+    '@typescript-eslint/no-explicit-any': 'off', // \u7981\u6B62\u4F7F\u7528 any \u7C7B\u578B
+    '@typescript-eslint/ban-types': 'off', // \u7981\u6B62\u4F7F\u7528\u7279\u5B9A\u7C7B\u578B
+    '@typescript-eslint/no-var-requires': 'off', // \u5141\u8BB8\u4F7F\u7528 require() \u51FD\u6570\u5BFC\u5165\u6A21\u5757
+    '@typescript-eslint/no-non-null-assertion': 'off', // \u4E0D\u5141\u8BB8\u4F7F\u7528\u540E\u7F00\u8FD0\u7B97\u7B26\u7684\u975E\u7A7A\u65AD\u8A00(!)
+    // react
     'react/react-in-jsx-scope': 'off'
   }
 };
 `,
-    "ts": `module.exports = {
+    ts: `module.exports = {
   root: true,
   env: { browser: true, es2020: true },
   extends: [
@@ -366,11 +412,15 @@ async function addEslintConfig(dir, projectType) {
   parser: '@typescript-eslint/parser',
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off'
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'no-var': 'error', // \u8981\u6C42\u4F7F\u7528 let \u6216 const \u800C\u4E0D\u662F var
+    'no-multiple-empty-lines': ['error', { max: 1 }], // \u4E0D\u5141\u8BB8\u591A\u4E2A\u7A7A\u884C
+    'prefer-const': 'off', // \u4F7F\u7528 let \u5173\u952E\u5B57\u58F0\u660E\u4F46\u5728\u521D\u59CB\u5206\u914D\u540E\u4ECE\u672A\u91CD\u65B0\u5206\u914D\u7684\u53D8\u91CF\uFF0C\u8981\u6C42\u4F7F\u7528 const
+    'no-use-before-define': 'off', // \u7981\u6B62\u5728 \u51FD\u6570/\u7C7B/\u53D8\u91CF \u5B9A\u4E49\u4E4B\u524D\u4F7F\u7528\u5B83\u4EEC
   }
 };
 `,
-    "js": `module.exports = {
+    js: `module.exports = {
   root: true,
   env: { browser: true, es2020: true },
   extends: [
@@ -379,7 +429,11 @@ async function addEslintConfig(dir, projectType) {
   ],
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off'
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'no-var': 'error', // \u8981\u6C42\u4F7F\u7528 let \u6216 const \u800C\u4E0D\u662F var
+    'no-multiple-empty-lines': ['error', { max: 1 }], // \u4E0D\u5141\u8BB8\u591A\u4E2A\u7A7A\u884C
+    'prefer-const': 'off', // \u4F7F\u7528 let \u5173\u952E\u5B57\u58F0\u660E\u4F46\u5728\u521D\u59CB\u5206\u914D\u540E\u4ECE\u672A\u91CD\u65B0\u5206\u914D\u7684\u53D8\u91CF\uFF0C\u8981\u6C42\u4F7F\u7528 const
+    'no-use-before-define': 'off', // \u7981\u6B62\u5728 \u51FD\u6570/\u7C7B/\u53D8\u91CF \u5B9A\u4E49\u4E4B\u524D\u4F7F\u7528\u5B83\u4EEC
   }
 };
 `
@@ -388,13 +442,30 @@ async function addEslintConfig(dir, projectType) {
 }
 async function addPrettierConfig(dir) {
   const configPath = join3(dir, ".prettierrc");
-  const config = JSON.stringify({
-    semi: false,
-    singleQuote: true,
-    printWidth: 100,
-    trailingComma: "none",
-    arrowParens: "avoid"
-  }, null, 2) + "\n";
+  const config = JSON.stringify(
+    {
+      semi: true,
+      printWidth: 120,
+      tabWidth: 2,
+      useTabs: false,
+      singleQuote: false,
+      quoteProps: "as-needed",
+      jsxSingleQuote: false,
+      trailingComma: "none",
+      bracketSpacing: true,
+      bracketSameLine: false,
+      arrowParens: "avoid",
+      requirePragma: false,
+      insertPragma: false,
+      proseWrap: "preserve",
+      htmlWhitespaceSensitivity: "css",
+      vueIndentScriptAndStyle: false,
+      endOfLine: "auto",
+      rangeStart: 0
+    },
+    null,
+    2
+  ) + "\n";
   await fs3.writeFile(configPath, config);
 }
 async function addPrettierIgnore(dir) {
@@ -448,10 +519,10 @@ async function updatePackageJsonForTooling(dir, options) {
     pkg.devDependencies.husky = "^9.0.0";
     pkg.devDependencies["lint-staged"] = "^15.2.0";
     const extMap = {
-      "vue3": "*.{js,ts,vue}",
-      "react": "*.{js,ts,tsx,jsx}",
-      "ts": "*.{js,ts}",
-      "js": "*.js"
+      vue3: "*.{js,ts,vue}",
+      react: "*.{js,ts,tsx,jsx}",
+      ts: "*.{js,ts}",
+      js: "*.js"
     };
     const glob = extMap[options.projectType] || "*.{js,ts}";
     pkg["lint-staged"] = {
@@ -537,7 +608,7 @@ var initCommand = new Command4("init").description("Add ESLint, Prettier, Husky 
 // package.json
 var package_default = {
   name: "striver-dev-cli",
-  version: "0.0.2",
+  version: "0.0.4",
   description: "Project scaffolding CLI for Vue and React",
   type: "module",
   bin: {

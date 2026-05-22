@@ -21,7 +21,7 @@ export async function addEslintConfig(dir: string, projectType: string) {
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    no-var': 'error', // 要求使用 let 或 const 而不是 var
+    'no-var': 'error', // 要求使用 let 或 const 而不是 var
     'no-multiple-empty-lines': ['error', { max: 1 }], // 不允许多个空行
     'prefer-const': 'off', // 使用 let 关键字声明但在初始分配后从未重新分配的变量，要求使用 const
     'no-use-before-define': 'off', // 禁止在 函数/类/变量 定义之前使用它们
